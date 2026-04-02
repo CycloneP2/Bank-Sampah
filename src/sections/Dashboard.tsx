@@ -19,11 +19,10 @@ import type { User, JenisSampah, Transaksi, DashboardStats } from '@/types';
 
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import Papa from 'papaparse';
 import { SlipSetoranManual } from '@/components/SlipSetoranManual';
 import { 
   MOCK_STATS, MOCK_TRANSACTIONS, MOCK_WASTE_TYPES, MOCK_NASABAH_LIST, 
-  MOCK_NOTIFICATIONS, MOCK_NEWS, MOCK_PICKUPS 
+  MOCK_NOTIFICATIONS, MOCK_NEWS 
 } from '@/lib/mockData';
 
 interface DashboardProps {
@@ -366,6 +365,15 @@ const DashboardOverview: React.FC = () => {
     </div>
   );
 };
+
+export interface Notifikasi {
+  id: string;
+  title: string;
+  msg: string;
+  status: 'Published' | 'Draft';
+  createdAt: string;
+  nasabahId?: string; // Add this
+}
 
 const StatCard: React.FC<{
   title: string;
@@ -716,7 +724,7 @@ const NasabahDashboardOverview: React.FC<{ onNavigateTo: (page: DashboardPage) =
               
               <div className="flex-1 overflow-y-auto custom-scrollbar p-0 bg-white">
                 <div className="p-4 sm:p-6 space-y-4">
-                  {items.map((item, index) => (
+                  {items.map((item) => (
                     <div key={item.id} className="p-4 sm:p-5 bg-gray-50 rounded-2xl sm:rounded-3xl border border-gray-100 relative group/item">
                       {items.length > 1 && (
                         <button 
@@ -1177,7 +1185,6 @@ const TransaksiSetorPage: React.FC = () => {
   const [nasabahList, setNasabahList] = useState<User[]>([]);
   const [wasteTypes, setWasteTypes] = useState<JenisSampah[]>([]);
   const [pendingSetoran, setPendingSetoran] = useState<Transaksi[]>([]);
-  const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<{ id: string, sampahId: string, berat: string }[]>([
     { id: Math.random().toString(), sampahId: '', berat: '' }
   ]);
@@ -1198,7 +1205,7 @@ const TransaksiSetorPage: React.FC = () => {
     if (user?.isDemo) {
       setNasabahList(MOCK_NASABAH_LIST);
       setWasteTypes(MOCK_WASTE_TYPES);
-      fetchPending().finally(() => setLoading(false));
+      fetchPending();
       return;
     }
     fetch('http://localhost/api/nasabah.php')
@@ -1209,7 +1216,7 @@ const TransaksiSetorPage: React.FC = () => {
       .then(res => res.json())
       .then(res => res.status === 'success' && setWasteTypes(res.data));
     
-    fetchPending().finally(() => setLoading(false));
+    fetchPending();
   }, [user]);
 
   const handleProses = (trx: Transaksi) => {
@@ -1282,23 +1289,6 @@ const TransaksiSetorPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handlePrint();
-  };
-
-  const handleExportCSV = () => {
-    const csvFormat = wasteTypes.map(item => ({
-      Kategori: item.id.substring(0, 2),
-      'Nama Barang': item.nama,
-      'Harga Beli (Rp)': item.hargaBeli,
-      'Harga Jual (Rp)': item.hargaJual,
-      Kg: '',
-      'Sub Total': ''
-    }));
-    const csv = Papa.unparse(csvFormat);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'slip_setoran_sampah.csv';
-    link.click();
   };
 
   return (
@@ -1400,8 +1390,8 @@ const TransaksiSetorPage: React.FC = () => {
                       <SelectValue placeholder="Pilih nasabah" />
                     </SelectTrigger>
                     <SelectContent>
-                      {nasabahList.map((n) => (
-                        <SelectItem key={n.id} value={n.id}>{n.id} - {n.nama}</SelectItem>
+                      {nasabahList.map((nasabah) => (
+                        <SelectItem key={nasabah.id} value={nasabah.id}>{nasabah.id} - {nasabah.nama}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -2735,7 +2725,7 @@ const SetorMandiriPage: React.FC = () => {
               <span className="text-[8px] sm:text-[10px] bg-[#E9F3EC] text-[#2A6B52] px-2 sm:px-3 py-1 rounded-full font-bold">{items.length} JENIS</span>
             </div>
             
-            {items.map((item, index) => (
+            {items.map((item) => (
               <div key={item.id} className="p-4 sm:p-6 bg-white rounded-2xl sm:rounded-[2rem] border border-gray-100 shadow-sm relative group">
                  {items.length > 1 && (
                     <button 
@@ -2987,7 +2977,6 @@ const KelolaNotifikasiPage: React.FC = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newMessage, setNewMessage] = useState('');
-  const [shouldPush, setShouldPush] = useState(false);
   const [notifs, setNotifs] = useState<any[]>([]);
 
   useEffect(() => {
@@ -3048,7 +3037,6 @@ const KelolaNotifikasiPage: React.FC = () => {
     
     setNewTitle('');
     setNewMessage('');
-    setShouldPush(false);
     setShowAddDialog(false);
   };
 

@@ -144,6 +144,27 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
   },
 };
 
+// Notifications
+export interface Notifikasi {
+  id: string;
+  title: string;
+  msg: string;
+  status: 'Published' | 'Draft';
+  createdAt: string;
+  nasabahId?: string;
+}
+
+// Pickups
+export interface Penjemputan {
+  id: string;
+  nasabahId: string;
+  tanggal: string;
+  waktu: 'pagi' | 'siang' | 'sore';
+  alamat: string;
+  status: 'pending' | 'processed';
+  createdAt: string;
+}
+
 // Demo Login Data
 export const DEMO_USERS: { email: string; password: string; role: UserRole; nama: string }[] = [
   { email: 'nasabah@banksampah.com', password: 'nasabah123', role: 'nasabah', nama: 'Ahmad Wijaya' },

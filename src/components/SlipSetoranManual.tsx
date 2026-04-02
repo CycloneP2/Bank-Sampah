@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import { Printer } from 'lucide-react';
 import type { JenisSampah } from '@/types';
 
 export const SlipSetoranManual: React.FC = () => {
-    const { user } = useAuth();
     const [wasteTypes, setWasteTypes] = useState<JenisSampah[]>([]);
     const [data, setData] = useState<Record<string, { harga: string, kg: string, sub: string }>>({});
     const [nama, setNama] = useState('');
